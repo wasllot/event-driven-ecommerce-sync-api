@@ -23,7 +23,7 @@ class ProductApiTest extends TestCase
         // Setup API User
         $this->user = User::factory()->create();
         $this->withHeader('X-API-KEY', 'test_api_key_12345');
-        config(['app.api_key' => 'test_api_key_12345']);
+        config(['services.api.token' => 'test_api_key_12345']);
     }
 
     public function test_can_list_products()
