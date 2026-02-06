@@ -1,0 +1,218 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Event-Driven E-commerce Sync API",
+        "description": "API for synchronizing products and orders between PrestaShop instances via Laravel Horizon.",
+        "contact": {
+            "email": "admin@fulfillment.local"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://api.fulfillment.local"
+        }
+    ],
+    "paths": {
+        "/api/sync/product": {
+            "post": {
+                "tags": [
+                    "Product Sync"
+                ],
+                "summary": "Queue product synchronization",
+                "description": "Receives product data from Source PrestaShop and queues it for sync to Client.",
+                "operationId": "syncProduct",
+                "security": [
+                    {
+                        "api_key_security": []
+                    }
+                ],
+                "requestBody": {
+                    "description": "Product Data Payload",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "reference",
+                                    "price"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "title": "id",
+                                        "type": "integer",
+                                        "example": 101
+                                    },
+                                    "name": {
+                                        "title": "name",
+                                        "type": "string",
+                                        "example": "Camiseta Cotton"
+                                    },
+                                    "reference": {
+                                        "title": "reference",
+                                        "type": "string",
+                                        "example": "TSHIRT-001"
+                                    },
+                                    "price": {
+                                        "title": "price",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 19.99
+                                    },
+                                    "stock": {
+                                        "title": "stock",
+                                        "type": "integer",
+                                        "example": 50
+                                    },
+                                    "active": {
+                                        "title": "active",
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "title": "message",
+                                            "type": "string",
+                                            "example": "Product sync queued successfully."
+                                        },
+                                        "reference": {
+                                            "title": "reference",
+                                            "type": "string",
+                                            "example": "TSHIRT-001"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/api/sync/order": {
+            "post": {
+                "tags": [
+                    "Order Replication"
+                ],
+                "summary": "Queue order replication",
+                "description": "Receives order data from Client PrestaShop and queues it for replication to Source.",
+                "operationId": "replicateOrder",
+                "security": [
+                    {
+                        "api_key_security": []
+                    }
+                ],
+                "requestBody": {
+                    "description": "Order Data Payload",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "reference",
+                                    "customer_email",
+                                    "total"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "title": "id",
+                                        "type": "integer",
+                                        "example": 500
+                                    },
+                                    "reference": {
+                                        "title": "reference",
+                                        "type": "string",
+                                        "example": "ORD-XJ90"
+                                    },
+                                    "customer_email": {
+                                        "title": "customer_email",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "customer@example.com"
+                                    },
+                                    "total": {
+                                        "title": "total",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 150.5
+                                    },
+                                    "status": {
+                                        "title": "status",
+                                        "type": "string",
+                                        "example": "paid"
+                                    },
+                                    "items": {
+                                        "title": "items",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "example": "Item object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "title": "message",
+                                            "type": "string",
+                                            "example": "Order replication queued successfully."
+                                        },
+                                        "reference": {
+                                            "title": "reference",
+                                            "type": "string",
+                                            "example": "ORD-XJ90"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "api_key_security": {
+                "type": "apiKey",
+                "name": "X-API-KEY",
+                "in": "header"
+            }
+        }
+    }
+}

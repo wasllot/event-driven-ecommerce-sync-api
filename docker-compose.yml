@@ -1,0 +1,171 @@
+services:
+  # MySQL Service (Shared Internal DB)
+  mysql:
+    image: mysql:8.0
+    container_name: fulfillment-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fulfillment_db
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - fulfillment-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Service (Cache & Queue)
+  redis:
+    image: redis:alpine
+    container_name: fulfillment-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fulfillment-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Laravel App (API Core)
+  fulfillment-app:
+    build:
+      context: .
+      dockerfile: docker/fulfillment/Dockerfile
+    container_name: fulfillment-api
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_NAME: "FulfillmentSystem"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: "http://localhost:8000"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: fulfillment_db
+      DB_USERNAME: laravel
+      DB_PASSWORD: password
+      REDIS_HOST: redis
+      REDIS_PASSWORD: null
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: redis
+      CACHE_STORE: redis
+    networks:
+      - fulfillment-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Laravel Horizon Worker (High Performance Queue Worker)
+  fulfillment-worker:
+    build:
+      context: .
+      dockerfile: docker/fulfillment/Dockerfile
+    container_name: fulfillment-worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    # Command to run Horizon instead of PHP-FPM
+    command: php artisan horizon
+    environment:
+      APP_ENV: local
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    networks:
+      - fulfillment-network
+    depends_on:
+      - fulfillment-app
+      - redis
+
+  # Nginx (Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: fulfillment-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - fulfillment-network
+    depends_on:
+      - fulfillment-app
+      - ps-source
+      - ps-client
+
+  # Service A: PrestaShop Source (The Wholesaler)
+  ps-source:
+    image: prestashop/prestashop:1.7.8
+    container_name: ps-source
+    restart: unless-stopped
+    environment:
+      DB_SERVER: mysql
+      DB_USER: root
+      DB_PASSWD: root
+      DB_NAME: prestashop_source
+      PS_INSTALL_AUTO: 1
+      PS_DOMAIN: mayorista.com
+      PS_NAME: MayoristaShop
+    volumes:
+      - ps_source_data:/var/www/html
+    networks:
+      fulfillment-network:
+        aliases:
+          - mayorista.com
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Service B: PrestaShop Client (The Retailer)
+  ps-client:
+    image: prestashop/prestashop:1.7.8
+    container_name: ps-client
+    restart: unless-stopped
+    environment:
+      DB_SERVER: mysql
+      DB_USER: root
+      DB_PASSWD: root
+      DB_NAME: prestashop_client
+      PS_INSTALL_AUTO: 1
+      PS_DOMAIN: minorista.com
+      PS_NAME: MinoristaShop
+    volumes:
+      - ps_client_data:/var/www/html
+    networks:
+      fulfillment-network:
+        aliases:
+          - minorista.com
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+networks:
+  fulfillment-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  ps_source_data:
+  ps_client_data:
