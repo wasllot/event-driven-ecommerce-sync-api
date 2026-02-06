@@ -22,7 +22,9 @@ class OrderApiTest extends TestCase
             'status' => 'pending'
         ];
 
-        $response = $this->postJson('/api/sync/order', $payload);
+        $response = $this->postJson('/api/sync/order', $payload, [
+            'X-API-KEY' => 'test-token'
+        ]);
 
         $response->assertStatus(202);
 

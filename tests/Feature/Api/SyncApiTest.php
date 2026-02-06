@@ -23,7 +23,9 @@ class SyncApiTest extends TestCase
             'attributes' => ['size' => 'M']
         ];
 
-        $response = $this->postJson('/api/sync/product', $payload);
+        $response = $this->postJson('/api/sync/product', $payload, [
+            'X-API-KEY' => 'test-token'
+        ]);
 
         $response->assertStatus(202);
 
