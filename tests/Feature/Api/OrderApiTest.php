@@ -19,7 +19,12 @@ class OrderApiTest extends TestCase
             'customer_email' => 'api@test.com',
             'total' => 300.50,
             'items' => [],
-            'status' => 'pending'
+            'status' => 'pending',
+            'shipping_address' => ['city' => 'Test City'],
+            'billing_address' => ['city' => 'Test City'],
+            'carrier_id' => 99,
+            'module' => 'stripe',
+            'currency' => 'USD'
         ];
 
         $response = $this->postJson('/api/sync/order', $payload, [

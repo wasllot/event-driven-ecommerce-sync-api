@@ -16,6 +16,11 @@ class OrderDataTest extends TestCase
             'total' => 150.50,
             'items' => [['ref' => 'P1', 'qty' => 1]],
             'status' => 'paid',
+            'shipping_address' => ['city' => 'Paris'],
+            'billing_address' => ['city' => 'Lyon'],
+            'carrier_id' => 2,
+            'module' => 'ps_checkpayment',
+            'currency' => 'EUR'
         ];
 
         $dto = OrderData::fromArray($data);
@@ -27,6 +32,11 @@ class OrderDataTest extends TestCase
         $this->assertEquals(150.50, $dto->total);
         $this->assertCount(1, $dto->items);
         $this->assertEquals('paid', $dto->status);
+        $this->assertEquals('Paris', $dto->shippingAddress['city']);
+        $this->assertEquals('Lyon', $dto->billingAddress['city']);
+        $this->assertEquals(2, $dto->carrierId);
+        $this->assertEquals('ps_checkpayment', $dto->module);
+        $this->assertEquals('EUR', $dto->currency);
     }
 
     public function test_can_convert_to_array(): void
@@ -37,7 +47,12 @@ class OrderDataTest extends TestCase
             customerEmail: 'jane@example.com',
             total: 200.00,
             items: [],
-            status: 'pending'
+            status: 'pending',
+            shippingAddress: [],
+            billingAddress: [],
+            carrierId: 1,
+            module: 'bankwire',
+            currency: 'USD'
         );
 
         $array = $dto->toArray();
@@ -47,5 +62,8 @@ class OrderDataTest extends TestCase
         $this->assertEquals('jane@example.com', $array['customer_email']);
         $this->assertEquals(200.00, $array['total']);
         $this->assertEquals('pending', $array['status']);
+        $this->assertEquals(1, $array['carrier_id']);
+        $this->assertEquals('bankwire', $array['module']);
+        $this->assertEquals('USD', $array['currency']);
     }
 }

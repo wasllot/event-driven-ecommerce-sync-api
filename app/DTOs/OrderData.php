@@ -9,8 +9,13 @@ readonly class OrderData
         public string $reference,
         public string $customerEmail,
         public float $total,
-        public array $items = [], // Array of product references and quantities
-        public string $status
+        public array $items = [],
+        public string $status,
+        public array $shippingAddress = [],
+        public array $billingAddress = [],
+        public int $carrierId = 0,
+        public string $module = '',
+        public string $currency = 'EUR'
     ) {
     }
 
@@ -22,7 +27,12 @@ readonly class OrderData
             customerEmail: $data['customer_email'],
             total: (float) $data['total'],
             items: $data['items'] ?? [],
-            status: $data['status']
+            status: $data['status'],
+            shippingAddress: $data['shipping_address'] ?? [],
+            billingAddress: $data['billing_address'] ?? [],
+            carrierId: (int) ($data['carrier_id'] ?? 0),
+            module: $data['module'] ?? '',
+            currency: $data['currency'] ?? 'EUR'
         );
     }
 
@@ -35,6 +45,11 @@ readonly class OrderData
             'total' => $this->total,
             'items' => $this->items,
             'status' => $this->status,
+            'shipping_address' => $this->shippingAddress,
+            'billing_address' => $this->billingAddress,
+            'carrier_id' => $this->carrierId,
+            'module' => $this->module,
+            'currency' => $this->currency,
         ];
     }
 }

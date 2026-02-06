@@ -227,13 +227,35 @@ class Ecommerce_sync_connector extends Module
             ];
         }
 
+        // Extract Addresses
+        $shippingAddress = new Address((int) $order->id_address_delivery, $this->context->language->id);
+        $billingAddress = new Address((int) $order->id_address_invoice, $this->context->language->id);
+
+        // Helper to format address
+        $formatAddress = function ($addr) {
+            return [
+                'firstname' => $addr->firstname,
+                'lastname' => $addr->lastname,
+                'address1' => $addr->address1,
+                'city' => $addr->city,
+                'postcode' => $addr->postcode,
+                'country' => Country::getIsoById($addr->id_country),
+                'phone' => $addr->phone_mobile ?: $addr->phone,
+            ];
+        };
+
         $this->sendWebhook('/sync/order', [
             'id' => $order->id,
             'reference' => $order->reference,
             'customer_email' => $customer->email,
             'total' => (float) $order->total_paid,
-            'status' => 'paid', // Or map current state
-            'items' => $items
+            'status' => 'paid',
+            'items' => $items,
+            'shipping_address' => $formatAddress($shippingAddress),
+            'billing_address' => $formatAddress($billingAddress),
+            'carrier_id' => (int) $order->id_carrier,
+            'module' => $order->module,
+            'currency' => Currency::getCurrencyInstance((int) $order->id_currency)->iso_code
         ]);
     }
 
