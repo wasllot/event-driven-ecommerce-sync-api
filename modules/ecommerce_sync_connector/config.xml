@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-    <name>fulfillment_connector</name>
-    <displayName><![CDATA[Event-Driven Fulfillment Connector]]></displayName>
+    <name>ecommerce_sync_connector</name>
+    <displayName><![CDATA[Event-Driven Ecommerce Sync Connector]]></displayName>
     <version><![CDATA[1.0.0]]></version>
     <description><![CDATA[Syncs products and orders via Webhooks.]]></description>
     <author><![CDATA[Valeriano]]></author>

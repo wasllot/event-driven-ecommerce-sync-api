@@ -1,9 +1,9 @@
 <?php
 /**
- * Event-Driven Fulfillment Connector
+ * Event-Driven Ecommerce Sync Connector
  *
  * @author    Senior Developer
- * @copyright 2026 Fulfillment Inc
+ * @copyright 2026 Ecommerce Sync Inc
  * @license   Commercial
  */
 
@@ -11,11 +11,11 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class Fulfillment_connector extends Module
+class Ecommerce_sync_connector extends Module
 {
     public function __construct()
     {
-        $this->name = 'fulfillment_connector';
+        $this->name = 'ecommerce_sync_connector';
         $this->tab = 'market_place';
         $this->version = '1.0.0';
         $this->author = 'Senior Developer';
@@ -25,7 +25,7 @@ class Fulfillment_connector extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('Event-Driven Fulfillment Connector');
+        $this->displayName = $this->l('Event-Driven Ecommerce Sync Connector');
         $this->description = $this->l('Syncs products and orders with Laravel Middleware via Webhooks.');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
@@ -42,9 +42,9 @@ class Fulfillment_connector extends Module
     public function uninstall()
     {
         return parent::uninstall() &&
-            Configuration::deleteByName('FULFILLMENT_API_URL') &&
-            Configuration::deleteByName('FULFILLMENT_API_TOKEN') &&
-            Configuration::deleteByName('FULFILLMENT_ROLE');
+            Configuration::deleteByName('ECOMMERCE_SYNC_API_URL') &&
+            Configuration::deleteByName('ECOMMERCE_SYNC_API_TOKEN') &&
+            Configuration::deleteByName('ECOMMERCE_SYNC_ROLE');
     }
 
     /**
@@ -55,9 +55,9 @@ class Fulfillment_connector extends Module
         $output = null;
 
         if (Tools::isSubmit('submit' . $this->name)) {
-            $apiUrl = strval(Tools::getValue('FULFILLMENT_API_URL'));
-            $apiToken = strval(Tools::getValue('FULFILLMENT_API_TOKEN'));
-            $role = strval(Tools::getValue('FULFILLMENT_ROLE'));
+            $apiUrl = strval(Tools::getValue('ECOMMERCE_SYNC_API_URL'));
+            $apiToken = strval(Tools::getValue('ECOMMERCE_SYNC_API_TOKEN'));
+            $role = strval(Tools::getValue('ECOMMERCE_SYNC_ROLE'));
 
             if (
                 !$apiUrl ||
@@ -66,9 +66,9 @@ class Fulfillment_connector extends Module
             ) {
                 $output .= $this->displayError($this->l('Invalid API URL'));
             } else {
-                Configuration::updateValue('FULFILLMENT_API_URL', $apiUrl);
-                Configuration::updateValue('FULFILLMENT_API_TOKEN', $apiToken);
-                Configuration::updateValue('FULFILLMENT_ROLE', $role);
+                Configuration::updateValue('ECOMMERCE_SYNC_API_URL', $apiUrl);
+                Configuration::updateValue('ECOMMERCE_SYNC_API_TOKEN', $apiToken);
+                Configuration::updateValue('ECOMMERCE_SYNC_ROLE', $role);
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
             }
         }
@@ -90,21 +90,21 @@ class Fulfillment_connector extends Module
                 [
                     'type' => 'text',
                     'label' => $this->l('Middleware API URL'),
-                    'name' => 'FULFILLMENT_API_URL',
+                    'name' => 'ECOMMERCE_SYNC_API_URL',
                     'size' => 20,
                     'required' => true
                 ],
                 [
                     'type' => 'text',
                     'label' => $this->l('API Token'),
-                    'name' => 'FULFILLMENT_API_TOKEN',
+                    'name' => 'ECOMMERCE_SYNC_API_TOKEN',
                     'size' => 20,
                     'required' => true
                 ],
                 [
                     'type' => 'select',
                     'label' => $this->l('Shop Role'),
-                    'name' => 'FULFILLMENT_ROLE',
+                    'name' => 'ECOMMERCE_SYNC_ROLE',
                     'required' => true,
                     'options' => [
                         'query' => [
@@ -141,9 +141,9 @@ class Fulfillment_connector extends Module
         $helper->submit_action = 'submit' . $this->name;
 
         // Load current values
-        $helper->fields_value['FULFILLMENT_API_URL'] = Configuration::get('FULFILLMENT_API_URL');
-        $helper->fields_value['FULFILLMENT_API_TOKEN'] = Configuration::get('FULFILLMENT_API_TOKEN');
-        $helper->fields_value['FULFILLMENT_ROLE'] = Configuration::get('FULFILLMENT_ROLE');
+        $helper->fields_value['ECOMMERCE_SYNC_API_URL'] = Configuration::get('ECOMMERCE_SYNC_API_URL');
+        $helper->fields_value['ECOMMERCE_SYNC_API_TOKEN'] = Configuration::get('ECOMMERCE_SYNC_API_TOKEN');
+        $helper->fields_value['ECOMMERCE_SYNC_ROLE'] = Configuration::get('ECOMMERCE_SYNC_ROLE');
 
         return $helper->generateForm($fieldsForm);
     }
@@ -154,7 +154,7 @@ class Fulfillment_connector extends Module
      */
     public function hookActionProductSave($params)
     {
-        if (Configuration::get('FULFILLMENT_ROLE') !== 'SOURCE') {
+        if (Configuration::get('ECOMMERCE_SYNC_ROLE') !== 'SOURCE') {
             return;
         }
 
@@ -182,7 +182,7 @@ class Fulfillment_connector extends Module
      */
     public function hookActionUpdateQuantity($params)
     {
-        if (Configuration::get('FULFILLMENT_ROLE') !== 'SOURCE') {
+        if (Configuration::get('ECOMMERCE_SYNC_ROLE') !== 'SOURCE') {
             return;
         }
 
@@ -209,7 +209,7 @@ class Fulfillment_connector extends Module
      */
     public function hookActionValidateOrder($params)
     {
-        if (Configuration::get('FULFILLMENT_ROLE') !== 'CLIENT') {
+        if (Configuration::get('ECOMMERCE_SYNC_ROLE') !== 'CLIENT') {
             return;
         }
 
@@ -242,8 +242,8 @@ class Fulfillment_connector extends Module
      */
     protected function sendWebhook($endpoint, $data)
     {
-        $url = Configuration::get('FULFILLMENT_API_URL') . '/api' . $endpoint;
-        $token = Configuration::get('FULFILLMENT_API_TOKEN');
+        $url = Configuration::get('ECOMMERCE_SYNC_API_URL') . '/api' . $endpoint;
+        $token = Configuration::get('ECOMMERCE_SYNC_API_TOKEN');
 
         // Use cURL for compatibility
         $ch = curl_init($url);
@@ -266,7 +266,7 @@ class Fulfillment_connector extends Module
 
         // Log errors if meaningful logging is implemented
         if (curl_errno($ch)) {
-            PrestaShopLogger::addLog('Fulfillment Connector Error: ' . curl_error($ch), 3);
+            PrestaShopLogger::addLog('Ecommerce Sync Connector Error: ' . curl_error($ch), 3);
         }
 
         curl_close($ch);

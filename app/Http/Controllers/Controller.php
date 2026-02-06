@@ -8,7 +8,7 @@ namespace App\Http\Controllers;
  *      title="Event-Driven E-commerce Sync API",
  *      description="API for synchronizing products and orders between PrestaShop instances via Laravel Horizon.",
  *      @OA\Contact(
- *          email="admin@fulfillment.local"
+ *          email="admin@ecommerce-sync.local"
  *      ),
  *      @OA\License(
  *          name="Apache 2.0",
