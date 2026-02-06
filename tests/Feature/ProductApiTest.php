@@ -23,7 +23,11 @@ class ProductApiTest extends TestCase
         // Setup API User
         $this->user = User::factory()->create();
         $this->withHeader('X-API-KEY', 'test_api_key_12345');
-        config(['services.api.token' => 'test_api_key_12345']);
+        config([
+            'services.api.token' => 'test_api_key_12345',
+            'services.prestashop.source.url' => 'http://test-source.com',
+            'services.prestashop.source.key' => 'key',
+        ]);
     }
 
     public function test_can_list_products()
@@ -43,6 +47,8 @@ class ProductApiTest extends TestCase
                 ]
             ], 200)
         ]);
+
+        // dump(config('services.prestashop.source')); // verify config
 
         $response = $this->getJson('/api/products');
 
