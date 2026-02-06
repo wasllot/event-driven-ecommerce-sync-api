@@ -36,15 +36,41 @@ class Ecommerce_sync_connector extends Module
         return parent::install() &&
             $this->registerHook('actionProductSave') &&
             $this->registerHook('actionUpdateQuantity') &&
-            $this->registerHook('actionValidateOrder');
+            $this->registerHook('actionValidateOrder') &&
+            $this->installTab();
     }
 
     public function uninstall()
     {
         return parent::uninstall() &&
+            $this->uninstallTab() &&
             Configuration::deleteByName('ECOMMERCE_SYNC_API_URL') &&
             Configuration::deleteByName('ECOMMERCE_SYNC_API_TOKEN') &&
             Configuration::deleteByName('ECOMMERCE_SYNC_ROLE');
+    }
+
+    public function installTab()
+    {
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->class_name = 'AdminEcommerceSyncMigration';
+        $tab->name = array();
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = 'Product Migration';
+        }
+        $tab->id_parent = (int) Tab::getIdFromClassName('AdminParentOrders'); // Put it under Orders or Catalog
+        $tab->module = $this->name;
+        return $tab->add();
+    }
+
+    public function uninstallTab()
+    {
+        $id_tab = (int) Tab::getIdFromClassName('AdminEcommerceSyncMigration');
+        if ($id_tab) {
+            $tab = new Tab($id_tab);
+            return $tab->delete();
+        }
+        return true;
     }
 
     /**

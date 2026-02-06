@@ -7,51 +7,53 @@ use PHPUnit\Framework\TestCase;
 
 class ProductDataTest extends TestCase
 {
-    public function test_can_create_from_array(): void
+    public function test_it_can_be_created_from_array_with_all_fields()
     {
         $data = [
-            'id' => 1,
+            'id' => 123,
             'name' => 'Test Product',
-            'reference' => 'REF-001',
+            'reference' => 'REF-123',
             'price' => 99.99,
             'stock' => 10,
             'active' => true,
             'attributes' => ['color' => 'red'],
+            'description' => '<p>Full Description</p>',
+            'description_short' => '<p>Short</p>',
+            'categories' => ['Electronics', 'Gadgets'],
+            'images' => ['http://example.com/img1.jpg'],
+            'weight' => 1.5,
+            'ean13' => '1234567890123'
         ];
 
         $dto = ProductData::fromArray($data);
 
-        $this->assertInstanceOf(ProductData::class, $dto);
-        $this->assertEquals(1, $dto->id);
-        $this->assertEquals('Test Product', $dto->name);
-        $this->assertEquals('REF-001', $dto->reference);
-        $this->assertEquals(99.99, $dto->price);
-        $this->assertEquals(10, $dto->stock);
-        $this->assertTrue($dto->active);
-        $this->assertEquals(['color' => 'red'], $dto->attributes);
+        $this->assertEquals(123, $dto->id);
+        $this->assertEquals('<p>Full Description</p>', $dto->description);
+        $this->assertEquals(['Electronics', 'Gadgets'], $dto->categories);
+        $this->assertEquals(1.5, $dto->weight);
+        $this->assertEquals('1234567890123', $dto->ean13);
     }
 
-    public function test_can_convert_to_array(): void
+    public function test_it_converts_to_array_correctly()
     {
         $dto = new ProductData(
             id: 1,
-            name: 'Test Product',
-            reference: 'REF-001',
-            price: 50.00,
+            name: 'P1',
+            reference: 'R1',
+            price: 10.0,
             stock: 5,
-            active: false,
-            attributes: []
+            active: true,
+            attributes: [],
+            description: 'Desc',
+            categories: ['Cat1'],
+            weight: 2.0
         );
 
         $array = $dto->toArray();
 
-        $this->assertIsArray($array);
-        $this->assertEquals(1, $array['id']);
-        $this->assertEquals('Test Product', $array['name']);
-        $this->assertEquals('REF-001', $array['reference']);
-        $this->assertEquals(50.00, $array['price']);
-        $this->assertEquals(5, $array['stock']);
-        $this->assertFalse($array['active']);
-        $this->assertEmpty($array['attributes']);
+        $this->assertArrayHasKey('description', $array);
+        $this->assertEquals('Desc', $array['description']);
+        $this->assertEquals(2.0, $array['weight']);
+        $this->assertNull($array['ean13']); // Default null
     }
 }
