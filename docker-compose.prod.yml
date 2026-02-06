@@ -1,0 +1,39 @@
+services:
+  # MySQL (No ports exposed)
+  mysql:
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # Redis (No ports exposed)
+  redis:
+    volumes:
+      - redis_data:/data
+
+  # App (Production Settings)
+  ecommerce-sync-app:
+    # No bind mounts! Code is in the container.
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+
+  # Worker
+  ecommerce-sync-worker:
+    # No bind mounts! Code is in the container.
+    environment:
+      APP_ENV: production
+
+  # Nginx
+  nginx:
+    # No bind mounts for config, should be copied in build. 
+    # For simplicity here we assume config mount or separate image build.
+    # Given current setup, we'll keep the config mount but assuming it's static.
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      # No code mount required, but Nginx might need access to public assets if serving static files directly.
+      # If using PHP-FPM, Nginx only needs access to .php files if it's doing something specific or checking existence.
+      # Usually standard setup mounts /var/www/html/public to Nginx container.
+      - ./public:/var/www/html/public
+
+volumes:
+  mysql_data:
+  redis_data:
