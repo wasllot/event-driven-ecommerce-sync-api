@@ -50,23 +50,31 @@ Instead of point-to-point connections (Spaghetti), all stores talk *only* to the
 - Curl
 
 ### 1. Start Infrastructure
+#### Development Mode
 ```bash
 docker-compose up -d --build
 ```
+Includes hot-reloading and simulated PrestaShop instances.
+
+#### Production Mode
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+Optimized images, no checking for code changes.
 
 ### 2. Verify Services
-- **Laravel API**: `http://api.fulfillment.local` (or localhost:8000)
-- **Wholesaler Store**: `http://mayorista.com` (Mapped to localhost:8080)
-- **Retailer Store**: `http://minorista.com` (Mapped to localhost:8081)
+- **Laravel API**: `http://api.ecommerce-sync.local` (or localhost:8000)
+- **Wholesaler Store**: `http://mayorista.com`
+- **Retailer Store**: `http://minorista.com`
 - **Horizon Dashboard**: `http://localhost:8000/horizon`
 
 ### 3. Install PrestaShop Module
-The environment comes with a custom `fulfillment_connector` module.
-1. Log into PrestaShop Admin (`admin@fulfillment.local` / `password123` or `password`).
+The environment comes with a custom `ecommerce_sync_connector` module.
+1. Log into PrestaShop Admin (`admin@ecommerce-sync.local` / `password123` or `password`).
 2. Go to **Modules > Module Manager**.
-3. Install **Event-Driven Fulfillment Connector**.
+3. Install **Event-Driven Ecommerce Sync Connector**.
 4. **Configure**:
-   - **API URL**: `http://fulfillment-nginx/api` (Internal Network URL)
+   - **API URL**: `http://ecommerce-sync-nginx/api` (Internal Network URL)
    - **Token**: [Check .env `API_ACCESS_TOKEN`]
    - **Role**: Select `SOURCE` for Mayorista, `CLIENT` for Minorista.
 
@@ -78,7 +86,7 @@ We adhere to Test-Driven Development (TDD) principles. The suite includes Unit, 
 
 ### Run All Tests
 ```bash
-docker-compose exec fulfillment-app php artisan test
+docker-compose exec ecommerce-sync-app php artisan test
 ```
 
 ### Key Test Classes
@@ -109,7 +117,7 @@ Swagger UI is available at:
 1. **Constant-Time Comparison**: The `EnsureValidApiToken` middleware uses `hash_equals()` to prevent timing attacks.
 2. **Read-Only DTOs**: Data Transfer Objects (`ProductData`, `OrderData`) are immutable to prevent unintended mutations.
 3. **Validated Requests**: All Webhooks are strictly validated before dispatching jobs.
-4. **Isolated Networks**: Database and Redis are on an internal `fulfillment-network`, not exposed publicly.
+4. **Isolated Networks**: Database and Redis are on an internal `ecommerce-sync-network`, not exposed publicly.
 
 ---
 
@@ -123,9 +131,9 @@ Swagger UI is available at:
 │   ├── Jobs            # Queued Jobs
 │   ├── Services        # External Integrations (PrestaShopService)
 ├── modules
-│   └── fulfillment_connector # Custom PrestaShop Module Source Code
+│   └── ecommerce_sync_connector # Custom PrestaShop Module Source Code
 ├── docker
-│   ├── fulfillment     # PHP-FPM Configuration
+│   ├── ecommerce-sync  # PHP-FPM Configuration
 │   └── nginx           # Nginx Configuration
 └── tests               # Automated Test Suite
 ```
